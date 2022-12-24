@@ -1,0 +1,23 @@
+{
+    "Input": {
+        "KinesisVideoStream": {
+            "Arn": "arn:aws:kinesisvideo:us-west-2:490776989874:stream/RekognitionVideo/1669488953509"
+        }
+    },
+    "Name": "default_stream_processor",
+    "Output": {
+        "S3Destination": {
+            "Bucket": "pets-detected",
+            "KeyPrefix": ""
+        }
+    },
+    "RoleArn": "arn:aws:iam::490776989874:role/admin",
+    "Settings": {
+        "ConnectedHome": {
+            "Labels": [
+                "PET"
+            ],
+            "MinConfidence": 80
+        }
+    }
+}
