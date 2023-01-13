@@ -107,9 +107,13 @@ if __name__ == '__main__':
         while True:
             dist = distance()
             print("Measured distance = %.1f cm" % dist)
-            time.sleep(.5)
             #testing "motion detection"
-            #if (dist2-dist1) >  
+            #if (dist2-dist1) >
+            
+            #testing for "pet dispenser", if it is greater than 20cm from top of dispenser
+            if dist > 20:
+                print("Refill")
+            time.sleep(.5) 
             
     except KeyboardInterrupt:
         print("Stopped_________")
