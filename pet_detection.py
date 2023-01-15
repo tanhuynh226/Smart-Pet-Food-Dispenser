@@ -1,6 +1,7 @@
 import cv2
 import time
 import boto3
+from notifications import *
 import RPi.GPIO as GPIO
 
 GPIO.setmode(GPIO.BCM)
@@ -102,10 +103,12 @@ if __name__ == '__main__':
             #if (dist2-dist1) >
                 #collect_frames()
                 #detect_pet()
+                #dispense function
+                # dispensedNotif()
             
             #testing for "pet dispenser", if it is greater than 20cm from top of dispenser
             if dist > 20:
-                print("Refill")
+                refillNotif()
             time.sleep(.5) 
             
     except KeyboardInterrupt:
