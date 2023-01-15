@@ -2,7 +2,7 @@ import boto3
 
 rek_client = boto3.client('rekognition')
 
-with open('test_images/pekingese.jpg', 'rb') as image:
+with open('test_images/cat.jpg', 'rb') as image:
     response = rek_client.detect_labels(Image={'Bytes': image.read()})
 
 labels = response['Labels']

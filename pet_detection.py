@@ -1,13 +1,17 @@
 import cv2
 import time
 import boto3
+import RPi.GPIO as GPIO
+
+GPIO.setmode(GPIO.BCM)
+
+GPIO_TRIGGER = 18
+GPIO_ECHO = 24
+
+GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
+GPIO.setup(GPIO_ECHO, GPIO.IN)
 
 rek_client = boto3.client('rekognition')
-
-def detect_pet_loop():
-    # ultrasonic ranger loops to detect when there is a pet in front
-    # calls collect_frames, then detect_pet if there is
-    pass
 
 def collect_frames():
     capture = cv2.VideoCapture(0)
@@ -65,20 +69,7 @@ def detect_dog_breed(photo):
         return labels[0]['Name']
     else:
         return None
-    
-#ultrasonic ranger code
-import RPi.GPIO as GPIO
-import time
 
-GPIO.setmode(GPIO.BCM)
-
-GPIO_TRIGGER = 18
-GPIO_ECHO = 24
-
-GPIO.setup(GPIO_TRIGGER, GPIO.OUT)
-GPIO.setup(GPIO_ECHO, GPIO.IN)
-
-#calculates the distance that the ranger is receiving
 def distance():
     GPIO.output(GPIO_TRIGGER, True)
     
@@ -109,6 +100,8 @@ if __name__ == '__main__':
             print("Measured distance = %.1f cm" % dist)
             #testing "motion detection"
             #if (dist2-dist1) >
+                #collect_frames()
+                #detect_pet()
             
             #testing for "pet dispenser", if it is greater than 20cm from top of dispenser
             if dist > 20:
