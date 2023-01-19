@@ -91,7 +91,7 @@ def store_pet():
 def release_camera():
     capture.release()
 
-def store_distance_before_motion():
+def get_distance_before_motion():
     while True:
         if keyboard.is_pressed('enter'):
             dist = ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)

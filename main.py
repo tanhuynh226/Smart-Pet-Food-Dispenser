@@ -5,6 +5,7 @@ import time
 import boto3
 import constant
 import keyboard
+import threading
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 from notifications import *
@@ -33,69 +34,106 @@ stepper_two.setup(constant.STEPPER_CHANNEL_TWO)
 
 client = Client(os.environ['TWILIO_ACCOUNT_SID'], os.environ['TWILIO_AUTH_TOKEN'])
 
-if __name__ == '__main__':
-    # Stores owner's phone number
+global_pet = []
+
+def dispenser_one(pet_one, dispenses_per_day, amount_dispensed):
     while True:
-        try:
-            phone_number = input('Enter your phone number with country code: ')
-            phone_number = '+' + phone_number
-            lookup = client.lookups.v1.phone_numbers(phone_number).fetch()
-            print('Phone number saved.')
-            break
-        except TwilioRestException:
-            print('Invalid phone number. Please try again.')
+        # Testing for "pet dispenser", if it is greater than constant REFILL_DISTANCE_THRESHOLD from top of dispenser
+        if ultrasonic_dispenser_one.distance(constant.ULTRASONIC_TRIGGER_DISPENSER_ONE, constant.ULTRASONIC_ECHO_DISPENSER_ONE) > constant.REFILL_DISTANCE_THRESHOLD:
+            dispenser_refill_notif('1', phone_number)
 
-    print('Beginning initial calibration...')
+        # Testing "motion detection" by comparing distance before and after motion
+        dist_after_motion = ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
+        #print('Measured distance = %.1f cm' % dist_after_motion)
+        if (dist_before_motion - dist_after_motion) > constant.MOTION_DISTANCE_THRESHOLD:
+            mask_one = np.in1d(global_pet, pet_one)
+            for value in mask_one:
+                if value == True:
+                    stepper_one.dispense(constant.STEPPER_CHANNEL_ONE, amount_dispensed)
+                    dispensed_notif('1', phone_number)
+                    time.sleep(86400 / dispenses_per_day)
+                    break
+        
+        time.sleep(.5)
 
-    # Stores distance without pet in front of the dispenser
-    print('Place nothing in front of the ultrasonic ranger and press enter once you have done so.')
-    dist_before_motion = store_distance_before_motion()
-    print(dist_before_motion)
-    print('Distance to floor saved.')
+def dispenser_two(pet_two, dispenses_per_day, amount_dispensed):
+    while True:
+        # Testing for "pet dispenser", if it is greater than constant REFILL_DISTANCE_THRESHOLD from top of dispenser
+        if ultrasonic_dispenser_two.distance(constant.ULTRASONIC_TRIGGER_DISPENSER_TWO, constant.ULTRASONIC_ECHO_DISPENSER_TWO) > constant.REFILL_DISTANCE_THRESHOLD:
+            dispenser_refill_notif('2', phone_number)
 
-    # Delay so that "enter" key has time to reset
-    time.sleep(0.1)
+        # Testing "motion detection" by comparing distance before and after motion
+        dist_after_motion = ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
+        #print('Measured distance = %.1f cm' % dist_after_motion)
+        if (dist_before_motion - dist_after_motion) > constant.MOTION_DISTANCE_THRESHOLD:
+            mask_two = np.in1d(global_pet, pet_two)
+            for value in mask_two:
+                if value == True:
+                    stepper_two.dispense(constant.STEPPER_CHANNEL_TWO, amount_dispensed)
+                    dispensed_notif('2', phone_number)
+                    time.sleep(86400 / dispenses_per_day)
+                    break
+        
+        time.sleep(.5)
 
-    # Assigns first pet type to dispenser 1
-    print('Place your first pet in front of the camera and press enter once you have done so.')
-    pet_one = store_pet()
-    print('Pet one saved as ' + pet_one)
+def motion_detected(dist_before_motion):
+    global global_pet
+    dist_after_motion = ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
+    if (dist_before_motion - dist_after_motion) > constant.MOTION_DISTANCE_THRESHOLD:
+        collect_frames()
+        global_pet = detect_pet()
 
-    # Assigns second pet type to dispenser 2
-    print('Place your second pet in front of the camera and press enter once you have done so.')
-    pet_two = store_pet()
-    print('Pet two saved as ' + pet_two)
-
-    try:
+if __name__ == '__main__':
+    try: 
+        # Stores owner's phone number
         while True:
-            # Testing for "pet dispenser", if it is greater than constant REFILL_DISTANCE_THRESHOLD from top of dispenser
-            if ultrasonic_dispenser_one.distance(constant.ULTRASONIC_TRIGGER_DISPENSER_ONE, constant.ULTRASONIC_ECHO_DISPENSER_ONE) > constant.REFILL_DISTANCE_THRESHOLD:
-                dispenser_refill_notif('1', phone_number)
-            elif ultrasonic_dispenser_two.distance(constant.ULTRASONIC_TRIGGER_DISPENSER_TWO, constant.ULTRASONIC_ECHO_DISPENSER_TWO) > constant.REFILL_DISTANCE_THRESHOLD:
-                dispenser_refill_notif('2', phone_number)
+            try:
+                phone_number = input('Enter your phone number with country code: ')
+                phone_number = '+' + phone_number
+                lookup = client.lookups.v1.phone_numbers(phone_number).fetch()
+                print('Phone number saved.')
+                break
+            except TwilioRestException:
+                print('Invalid phone number. Please try again.')
 
-            # Testing "motion detection" by comparing distance before and after motion
-            dist_after_motion = ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
-            #print('Measured distance = %.1f cm' % dist_after_motion)
-            if (dist_before_motion - dist_after_motion) > constant.MOTION_DISTANCE_THRESHOLD:
-                collect_frames()
-                pet = detect_pet()
-                mask_one = np.in1d(pet, pet_one)
-                mask_two = np.in1d(pet, pet_two)
-                for value in mask_one:
-                    if value == True:
-                        stepper_one.dispense(constant.STEPPER_CHANNEL_ONE, constant.TIME_TO_DISPENSE_PET_ONE)
-                        dispensed_notif('1', phone_number)
-                        break
-                for value in mask_two:
-                    if value == True:
-                        stepper_two.dispense(constant.STEPPER_CHANNEL_TWO, constant.TIME_TO_DISPENSE_PET_TWO)
-                        dispensed_notif('2', phone_number)
-                        break
-            
-            time.sleep(.5) 
-            
+        print('Beginning initial calibration...')
+
+        # Stores distance without pet in front of the dispenser
+        print('Place nothing in front of the ultrasonic ranger and press enter once you have done so.')
+        dist_before_motion = get_distance_before_motion()
+        print(dist_before_motion)
+        print('Distance to floor saved.')
+
+        # Delay so that "enter" key has time to reset
+        time.sleep(0.1)
+
+        # Assigns first pet type to dispenser 1
+        print('Place your first pet in front of the camera and press enter once you have done so.')
+        pet_one = store_pet()
+        print('Pet one saved as ' + pet_one)
+        pet_one_dispenses_per_day = int(input('Enter many times per day to dispense food for this pet: '))
+        pet_one_amount_dispensed = float(input('Enter how much food to dispense for this pet: '))
+
+        # Assigns second pet type to dispenser 2
+        print('Place your second pet in front of the camera and press enter once you have done so.')
+        pet_two = store_pet()
+        print('Pet two saved as ' + pet_two)
+        pet_two_dispenses_per_day = int(input('Enter many times per day to dispense food for this pet: '))
+        pet_two_amount_dispensed = float(input('Enter how much food to dispense for this pet: '))
+
+        motion = threading.Thread(target=motion_detected, args=(dist_before_motion))
+        d1 = threading.Thread(target=dispenser_one, args=(pet_one, pet_one_dispenses_per_day, pet_one_dispenses_per_day))
+        d2 = threading.Thread(target=dispenser_two, args=(pet_two, pet_two_dispenses_per_day, pet_two_dispenses_per_day))
+
+        motion.daemon = True
+        d1.daemon = True
+        d2.daemon = True
+
+        motion.start()
+        d1.start()
+        d2.start()
+
     except KeyboardInterrupt:
-        print('Stopped_________')
+        print('Exiting program...')
         release_camera()
         GPIO.cleanup()
