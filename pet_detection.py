@@ -86,7 +86,7 @@ def store_pet():
             return pet
 
 def detect_dog_breed(photo):
-    model='arn:aws:rekognition:us-west-2:490776989874:project/dog_breeds/version/dog_breeds.2022-10-16T17.38.46/1665967125295'
+    model=os.environ['AWS_DOG_BREEDS_MODEL_ARN']
     min_confidence=60
 
     with open(photo, 'rb') as image:
