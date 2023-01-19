@@ -2,7 +2,10 @@
 #PDX-License-Identifier: MIT-0 (For details, see https://github.com/awsdocs/amazon-rekognition-custom-labels-developer-guide/blob/master/LICENSE-SAMPLECODE.)
 
 import boto3
-import time
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 def stop_model(model_arn):
@@ -23,7 +26,7 @@ def stop_model(model_arn):
     
 def main():
     
-    model_arn='arn:aws:rekognition:us-west-2:490776989874:project/dog_breeds/version/dog_breeds.2022-10-16T17.38.46/1665967125295'
+    model_arn=os.environ['AWS_DOG_BREEDS_MODEL_ARN']
     stop_model(model_arn)
 
 if __name__ == "__main__":

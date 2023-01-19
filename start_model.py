@@ -2,6 +2,10 @@
 #PDX-License-Identifier: MIT-0 (For details, see https://github.com/awsdocs/amazon-rekognition-custom-labels-developer-guide/blob/master/LICENSE-SAMPLECODE.)
 
 import boto3
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
 
 def start_model(project_arn, model_arn, version_name, min_inference_units):
 
@@ -27,8 +31,8 @@ def start_model(project_arn, model_arn, version_name, min_inference_units):
     print('Done...')
     
 def main():
-    project_arn='arn:aws:rekognition:us-west-2:490776989874:project/dog_breeds/1665966948509'
-    model_arn='arn:aws:rekognition:us-west-2:490776989874:project/dog_breeds/version/dog_breeds.2022-10-16T17.38.46/1665967125295'
+    project_arn=os.environ['AWS_DOG_BREEDS_PROJECT_ARN']
+    model_arn=os.environ['AWS_DOG_BREEDS_MODEL_ARN']
     min_inference_units=1 
     version_name='dog_breeds.2022-10-16T17.38.46'
     start_model(project_arn, model_arn, version_name, min_inference_units)
