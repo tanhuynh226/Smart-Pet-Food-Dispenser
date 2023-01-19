@@ -139,10 +139,10 @@ if __name__ == '__main__':
                 collect_frames()
                 pet = detect_pet()
                 if pet == pet_one:
-                    stepper_one.dispense(constant.TIME_TO_DISPENSE_PET_ONE)
+                    stepper_one.dispense(constant.STEPPER_CHANNEL_ONE, constant.TIME_TO_DISPENSE_PET_ONE)
                     dispensed_one_notif(phone_number)
                 elif pet == pet_two: 
-                    stepper_two.dispense(constant.TIME_TO_DISPENSE_PET_TWO)
+                    stepper_two.dispense(constant.STEPPER_CHANNEL_TWO, constant.TIME_TO_DISPENSE_PET_TWO)
                     dispensed_two_notif(phone_number)
             
             # Testing for "pet dispenser", if it is greater than constant REFILL_DISTANCE_THRESHOLD from top of dispenser
