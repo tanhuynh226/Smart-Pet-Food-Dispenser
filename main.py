@@ -35,13 +35,13 @@ stepper_two.setup(constant.STEPPER_CHANNEL_TWO)
 client = Client(os.environ['TWILIO_ACCOUNT_SID'], os.environ['TWILIO_AUTH_TOKEN'])
 
 global_pet = []
+pet_one_fed_status = False
+pet_two_fed_status = False
 
 def dispenser_one(pet_one, dispenses_per_day, amount_dispensed):
+    global pet_one_fed_status
     while True:
-        # Testing for "pet dispenser", if it is greater than constant REFILL_DISTANCE_THRESHOLD from top of dispenser
-        if ultrasonic_dispenser_one.distance(constant.ULTRASONIC_TRIGGER_DISPENSER_ONE, constant.ULTRASONIC_ECHO_DISPENSER_ONE) > constant.REFILL_DISTANCE_THRESHOLD:
-            dispenser_refill_notif('1', phone_number)
-
+        pet_one_fed_status = False
         # Testing "motion detection" by comparing distance before and after motion
         dist_after_motion = ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
         #print('Measured distance = %.1f cm' % dist_after_motion)
@@ -50,18 +50,20 @@ def dispenser_one(pet_one, dispenses_per_day, amount_dispensed):
             for value in mask_one:
                 if value == True:
                     stepper_one.dispense(constant.STEPPER_CHANNEL_ONE, amount_dispensed)
+                    pet_one_fed_status = True
                     dispensed_notif('1', phone_number)
+                    # Testing for "pet dispenser", if it is greater than constant REFILL_DISTANCE_THRESHOLD from top of dispenser
+                    if ultrasonic_dispenser_one.distance(constant.ULTRASONIC_TRIGGER_DISPENSER_ONE, constant.ULTRASONIC_ECHO_DISPENSER_ONE) > constant.REFILL_DISTANCE_THRESHOLD:
+                        dispenser_refill_notif('1', phone_number)
                     time.sleep(86400 / dispenses_per_day)
                     break
         
         time.sleep(.5)
 
 def dispenser_two(pet_two, dispenses_per_day, amount_dispensed):
+    global pet_two_fed_status
     while True:
-        # Testing for "pet dispenser", if it is greater than constant REFILL_DISTANCE_THRESHOLD from top of dispenser
-        if ultrasonic_dispenser_two.distance(constant.ULTRASONIC_TRIGGER_DISPENSER_TWO, constant.ULTRASONIC_ECHO_DISPENSER_TWO) > constant.REFILL_DISTANCE_THRESHOLD:
-            dispenser_refill_notif('2', phone_number)
-
+        pet_two_fed_status = False
         # Testing "motion detection" by comparing distance before and after motion
         dist_after_motion = ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
         #print('Measured distance = %.1f cm' % dist_after_motion)
@@ -70,18 +72,24 @@ def dispenser_two(pet_two, dispenses_per_day, amount_dispensed):
             for value in mask_two:
                 if value == True:
                     stepper_two.dispense(constant.STEPPER_CHANNEL_TWO, amount_dispensed)
+                    pet_two_fed_status = True
                     dispensed_notif('2', phone_number)
+                    # Testing for "pet dispenser", if it is greater than constant REFILL_DISTANCE_THRESHOLD from top of dispenser
+                    if ultrasonic_dispenser_two.distance(constant.ULTRASONIC_TRIGGER_DISPENSER_TWO, constant.ULTRASONIC_ECHO_DISPENSER_TWO) > constant.REFILL_DISTANCE_THRESHOLD:
+                        dispenser_refill_notif('2', phone_number)
                     time.sleep(86400 / dispenses_per_day)
                     break
         
         time.sleep(.5)
 
 def motion_detected(dist_before_motion):
-    global global_pet
-    dist_after_motion = ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
-    if (dist_before_motion - dist_after_motion) > constant.MOTION_DISTANCE_THRESHOLD:
-        collect_frames()
-        global_pet = detect_pet()
+    global global_pet, pet_one_fed_status, pet_two_fed_status
+    while True:
+        dist_after_motion = ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
+        if ((dist_before_motion - dist_after_motion) > constant.MOTION_DISTANCE_THRESHOLD) and (pet_one_fed_status == False or pet_two_fed_status == False):
+            collect_frames()
+            global_pet = detect_pet()
+            time.sleep(60)
 
 if __name__ == '__main__':
     try: 
