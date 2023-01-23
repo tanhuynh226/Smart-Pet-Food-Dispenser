@@ -18,7 +18,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
+GPIO.setmode(GPIO.BOARD)
 
 ultrasonic_pet_detect = UltrasonicRanger()
 ultrasonic_dispenser_one = UltrasonicRanger()

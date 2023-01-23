@@ -1,11 +1,12 @@
 import RPi.GPIO as GPIO
 import time
 import sys
+import constant
 
 GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
+GPIO.setmode(GPIO.BOARD)
 
-class Motor:
+class StepperMotor:
     def setup(self, channel):
         GPIO.setup(channel, GPIO.OUT, initial=GPIO.LOW)
 
@@ -27,3 +28,9 @@ class Motor:
             except KeyboardInterrupt as e:
                 print(e)
         print('Motor stopped')
+        
+if __name__ == '__main__':
+    stepper_one = StepperMotor()
+    stepper_one.setup(constant.STEPPER_CHANNEL_ONE)
+    stepper_one.dispense(constant.STEPPER_CHANNEL_ONE, 10)
+    
