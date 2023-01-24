@@ -11,22 +11,20 @@ from dotenv import load_dotenv
 load_dotenv()
 
 GPIO.setwarnings(False)
-GPIO.setmode(GPIO.BCM)
+GPIO.setmode(GPIO.BOARD)
 
 ultrasonic_pet_detect = UltrasonicRanger()
 rek_client = boto3.client('rekognition')
 
-capture = cv2.VideoCapture(0)
+capture = cv2.VideoCapture(-1, cv2.CAP_V4L)
 
 def collect_frames():
     
     img_counter = 0
     start_time = time.time()
 
-    while True:
+    while (img_counter < 5):
         ret, frame = capture.read()
-        if not ret or img_counter == 5:
-            break
         if time.time() - start_time >= 1: # Check if 1 sec passed
             img_name = 'frames/frame_{}.png'.format(img_counter)
             cv2.imwrite(img_name, frame)
@@ -38,9 +36,7 @@ def detect_pet():
     img_counter = 0
     pet = []
 
-    while True:
-        if img_counter == 5:
-            break
+    while (img_counter < 5):
         filename = 'frames/frame_{}.png'.format(img_counter)
         with open(filename, 'rb') as image:
             response = rek_client.detect_labels(Image={'Bytes': image.read()})
@@ -89,6 +85,11 @@ def store_pet():
             return pet
 
 def release_camera():
+    img_counter = 0
+    while (img_counter < 5):
+        img_name = 'frames/frame_{}.png'.format(img_counter)
+        os.remove(img_name)
+        img_counter += 1
     capture.release()
 
 def get_distance_before_motion():
