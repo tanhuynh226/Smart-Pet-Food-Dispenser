@@ -130,8 +130,8 @@ if __name__ == '__main__':
         pet_two_amount_dispensed = float(input('Enter how much food to dispense for this pet: '))
 
         motion = threading.Thread(target=motion_detected, args=(dist_before_motion))
-        d1 = threading.Thread(target=dispenser_one, args=(pet_one, pet_one_dispenses_per_day, pet_one_dispenses_per_day))
-        d2 = threading.Thread(target=dispenser_two, args=(pet_two, pet_two_dispenses_per_day, pet_two_dispenses_per_day))
+        d1 = threading.Thread(target=dispenser_one, args=(pet_one, pet_one_dispenses_per_day, pet_one_amount_dispensed))
+        d2 = threading.Thread(target=dispenser_two, args=(pet_two, pet_two_dispenses_per_day, pet_two_amount_dispensed))
 
         motion.daemon = True
         d1.daemon = True

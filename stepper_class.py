@@ -1,6 +1,5 @@
 import RPi.GPIO as GPIO
 import time
-import sys
 import constant
 
 GPIO.setwarnings(False)
