@@ -1,5 +1,6 @@
 import RPi.GPIO as GPIO
 import time
+import constant
 
 GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
@@ -29,3 +30,8 @@ class UltrasonicRanger:
         distance = (timeElapsed * 34300) / 2
         
         return distance
+
+if __name__ == '__main__':
+    ultrasonic_pet_detect = UltrasonicRanger()
+    ultrasonic_pet_detect.setup(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
+    ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
