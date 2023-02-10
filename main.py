@@ -39,7 +39,7 @@ pet_one_fed_status = False
 pet_two_fed_status = False
 
 def dispenser_one(pet_one, dispenses_per_day, amount_dispensed):
-    global pet_one_fed_status
+    global global_pet, pet_one_fed_status
     while True:
         pet_one_fed_status = False
         # Testing "motion detection" by comparing distance before and after motion
@@ -64,7 +64,7 @@ def dispenser_one(pet_one, dispenses_per_day, amount_dispensed):
         time.sleep(.5)
 
 def dispenser_two(pet_two, dispenses_per_day, amount_dispensed):
-    global pet_two_fed_status
+    global global_pet, pet_two_fed_status
     while True:
         pet_two_fed_status = False
         # Testing "motion detection" by comparing distance before and after motion
