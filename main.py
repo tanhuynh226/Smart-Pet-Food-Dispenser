@@ -45,10 +45,13 @@ def dispenser_one(pet_one, dispenses_per_day, amount_dispensed):
         # Testing "motion detection" by comparing distance before and after motion
         dist_after_motion = ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
         #print('Measured distance = %.1f cm' % dist_after_motion)
+        print('Dispenser 1 checking if motion is detected')
         if (dist_before_motion - dist_after_motion) > constant.MOTION_DISTANCE_THRESHOLD:
+            print('Dispenser 1 checking if motion is pet matches')
             mask_one = np.in1d(global_pet, pet_one)
             for value in mask_one:
                 if value == True:
+                    print('Dispenser 1 pet match confirm')
                     stepper_one.dispense(constant.STEPPER_CHANNEL_ONE, amount_dispensed)
                     pet_one_fed_status = True
                     dispensed_notif('1', phone_number)
@@ -89,6 +92,7 @@ def motion_detected(dist_before_motion):
         if ((dist_before_motion - dist_after_motion) > constant.MOTION_DISTANCE_THRESHOLD) and (pet_one_fed_status == False or pet_two_fed_status == False):
             collect_frames()
             global_pet = detect_pet()
+            print('Sleeping after motion detection...')
             time.sleep(60)
 
 if __name__ == '__main__':
@@ -118,20 +122,25 @@ if __name__ == '__main__':
         # Assigns first pet type to dispenser 1
         print('Place your first pet in front of the camera and press enter once you have done so.')
         pet_one = store_pet()
-        print('Pet one saved as ' + pet_one)
-        pet_one_dispenses_per_day = int(input('Enter many times per day to dispense food for this pet: '))
-        pet_one_amount_dispensed = float(input('Enter how much food to dispense for this pet: '))
+        print('Pet one saved as ', pet_one)
+#         pet_one_dispenses_per_day = input('Enter how many times per day to dispense food for this pet: ')
+#         pet_one_dispenses_per_day = int(float(pet_one_dispenses_per_day))
+#         pet_one_amount_dispensed = float(input('Enter how much food to dispense for this pet: '))
+        pet_one_dispenses_per_day = 1
+        pet_one_amount_dispensed = 5
 
         # Assigns second pet type to dispenser 2
         print('Place your second pet in front of the camera and press enter once you have done so.')
         pet_two = store_pet()
-        print('Pet two saved as ' + pet_two)
-        pet_two_dispenses_per_day = int(input('Enter many times per day to dispense food for this pet: '))
-        pet_two_amount_dispensed = float(input('Enter how much food to dispense for this pet: '))
+        print('Pet two saved as ', pet_two)
+#         pet_two_dispenses_per_day = int(input('Enter how many times per day to dispense food for this pet: '))
+#         pet_two_amount_dispensed = float(input('Enter how much food to dispense for this pet: '))
+        pet_two_dispenses_per_day = 1
+        pet_two_amount_dispensed = 5
 
-        motion = threading.Thread(target=motion_detected, args=(dist_before_motion))
-        d1 = threading.Thread(target=dispenser_one, args=(pet_one, pet_one_dispenses_per_day, pet_one_amount_dispensed))
-        d2 = threading.Thread(target=dispenser_two, args=(pet_two, pet_two_dispenses_per_day, pet_two_amount_dispensed))
+        motion = threading.Thread(target=motion_detected, args=(dist_before_motion, ))
+        d1 = threading.Thread(target=dispenser_one, args=(pet_one, pet_one_dispenses_per_day, pet_one_amount_dispensed, ))
+        d2 = threading.Thread(target=dispenser_two, args=(pet_two, pet_two_dispenses_per_day, pet_two_amount_dispensed, ))
 
         motion.daemon = True
         d1.daemon = True
@@ -140,6 +149,10 @@ if __name__ == '__main__':
         motion.start()
         d1.start()
         d2.start()
+        
+        motion.join()
+        d1.join()
+        d2.join()
 
     except KeyboardInterrupt:
         print('Exiting program...')

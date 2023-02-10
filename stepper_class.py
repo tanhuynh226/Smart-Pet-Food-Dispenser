@@ -31,5 +31,5 @@ class StepperMotor:
 if __name__ == '__main__':
     stepper_one = StepperMotor()
     stepper_one.setup(constant.STEPPER_CHANNEL_ONE)
-    stepper_one.dispense(constant.STEPPER_CHANNEL_ONE, 10)
+    stepper_one.dispense(constant.STEPPER_CHANNEL_ONE, 5)
     
