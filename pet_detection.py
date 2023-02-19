@@ -99,13 +99,13 @@ def get_distance_before_motion():
             return dist
 
 if __name__ == '__main__':
-    print('Place your first pet in front of the camera and press enter once you have done so.')
-    pet_one = store_pet()
-    print(pet_one)
-    print('Pet one saved')
-
-    print('Place your second pet in front of the camera and press enter once you have done so.')
-    pet_two = store_pet()
-    print(pet_two)
-    print('Pet two saved')
+#     print('Place your first pet in front of the camera and press enter once you have done so.')
+#     pet_one = store_pet()
+#     print(pet_one)
+#     print('Pet one saved')
+# 
+#     print('Place your second pet in front of the camera and press enter once you have done so.')
+#     pet_two = store_pet()
+#     print(pet_two)
+#     print('Pet two saved')
     release_camera()

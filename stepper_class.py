@@ -6,23 +6,21 @@ GPIO.setwarnings(False)
 GPIO.setmode(GPIO.BOARD)
 
 class StepperMotor:
-    def setup(self, channel):
-        GPIO.setup(channel, GPIO.OUT, initial=GPIO.LOW)
+    def setup(self, en_pin, dir_pin, step_pin):
+        GPIO.setup(en_pin, GPIO.OUT, initial=GPIO.LOW)
+        GPIO.setup(dir_pin, GPIO.OUT)
+        GPIO.setup(step_pin, GPIO.OUT)
+        GPIO.output(dir_pin, 1) # clockwise
+        GPIO.output(en_pin,GPIO.LOW)
 
-    def dispense(self, channel, seconds):
+    def dispense(self, en_pin, dir_pin, step_pin, seconds):
         start = time.time()
 
         while time.time() < start + seconds:
             try:
-                GPIO.output(channel, (GPIO.HIGH, GPIO.LOW, GPIO.LOW, GPIO.HIGH))
+                GPIO.output(step_pin, GPIO.HIGH)
                 time.sleep(0.002)
-                GPIO.output(channel, (GPIO.HIGH, GPIO.LOW, GPIO.LOW, GPIO.HIGH))
-                time.sleep(0.002)
-                GPIO.output(channel, (GPIO.LOW, GPIO.LOW, GPIO.HIGH, GPIO.HIGH))
-                time.sleep(0.002)
-                GPIO.output(channel, (GPIO.LOW, GPIO.HIGH, GPIO.HIGH, GPIO.LOW))
-                time.sleep(0.002)
-                GPIO.output(channel, (GPIO.HIGH, GPIO.HIGH, GPIO.LOW, GPIO.LOW))
+                GPIO.output(step_pin, GPIO.LOW)
                 time.sleep(0.002)
             except KeyboardInterrupt as e:
                 print(e)
@@ -30,6 +28,9 @@ class StepperMotor:
         
 if __name__ == '__main__':
     stepper_one = StepperMotor()
-    stepper_one.setup(constant.STEPPER_CHANNEL_ONE)
-    stepper_one.dispense(constant.STEPPER_CHANNEL_ONE, 5)
+    stepper_one.setup(constant.STEPPER_ONE_ENABLE, constant.STEPPER_ONE_DIR, constant.STEPPER_ONE_STEP)
+    stepper_one.dispense(constant.STEPPER_ONE_ENABLE, constant.STEPPER_ONE_DIR, constant.STEPPER_ONE_STEP, 10)
+    stepper_two = StepperMotor()
+    stepper_two.setup(constant.STEPPER_TWO_ENABLE, constant.STEPPER_TWO_DIR, constant.STEPPER_TWO_STEP)
+    stepper_two.dispense(constant.STEPPER_TWO_ENABLE, constant.STEPPER_TWO_DIR, constant.STEPPER_TWO_STEP, 10)
     

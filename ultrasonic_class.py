@@ -12,12 +12,12 @@ class UltrasonicRanger:
 
     def distance(self, trigger, echo):
         dist_arr = []
-        GPIO.output(trigger, True)
-    
-        time.sleep(0.00001)
-        GPIO.output(trigger, False)
         
         while(len(dist_arr) < 5):
+            GPIO.output(trigger, True)
+    
+            time.sleep(0.1)
+            GPIO.output(trigger, False)
             startTime = time.time()
             stopTime = time.time()
 
@@ -29,7 +29,7 @@ class UltrasonicRanger:
 
             timeElapsed = stopTime - startTime
             dist_arr.append((timeElapsed * 34300) / 2)
-        sum = 0
+        sum = 0.0
         for x in dist_arr:
             sum += x
         distance = sum/len(dist_arr)
@@ -38,5 +38,14 @@ class UltrasonicRanger:
 
 if __name__ == '__main__':
     ultrasonic_pet_detect = UltrasonicRanger()
+    ultrasonic_dispenser_one = UltrasonicRanger()
+    ultrasonic_dispenser_two = UltrasonicRanger()
     ultrasonic_pet_detect.setup(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
+    ultrasonic_dispenser_one.setup(constant.ULTRASONIC_TRIGGER_DISPENSER_ONE, constant.ULTRASONIC_ECHO_DISPENSER_ONE)
+    ultrasonic_dispenser_two.setup(constant.ULTRASONIC_TRIGGER_DISPENSER_TWO, constant.ULTRASONIC_ECHO_DISPENSER_TWO)
     print(ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET))
+    print(ultrasonic_dispenser_one.distance(constant.ULTRASONIC_TRIGGER_DISPENSER_ONE, constant.ULTRASONIC_ECHO_DISPENSER_ONE))
+    print(ultrasonic_dispenser_two.distance(constant.ULTRASONIC_TRIGGER_DISPENSER_TWO, constant.ULTRASONIC_ECHO_DISPENSER_TWO))
+    
+    
+    

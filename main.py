@@ -1,10 +1,7 @@
 import os
-import cv2
 import numpy as np
 import time
-import boto3
 import constant
-import keyboard
 import threading
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
@@ -74,6 +71,7 @@ def dispenser_two(pet_two, dispenses_per_day, amount_dispensed):
             mask_two = np.in1d(global_pet, pet_two)
             for value in mask_two:
                 if value == True:
+                    print('Dispenser 2 pet match confirm')
                     stepper_two.dispense(constant.STEPPER_CHANNEL_TWO, amount_dispensed)
                     pet_two_fed_status = True
                     dispensed_notif('2', phone_number)
@@ -93,7 +91,7 @@ def motion_detected(dist_before_motion):
             collect_frames()
             global_pet = detect_pet()
             print('Sleeping after motion detection...')
-            time.sleep(60)
+            time.sleep(20)
 
 if __name__ == '__main__':
     try: 
@@ -123,8 +121,7 @@ if __name__ == '__main__':
         print('Place your first pet in front of the camera and press enter once you have done so.')
         pet_one = store_pet()
         print('Pet one saved as ', pet_one)
-#         pet_one_dispenses_per_day = input('Enter how many times per day to dispense food for this pet: ')
-#         pet_one_dispenses_per_day = int(float(pet_one_dispenses_per_day))
+#         pet_one_dispenses_per_day = int(input('Enter how many times per day to dispense food for this pet: '))
 #         pet_one_amount_dispensed = float(input('Enter how much food to dispense for this pet: '))
         pet_one_dispenses_per_day = 1
         pet_one_amount_dispensed = 5
