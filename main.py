@@ -26,8 +26,8 @@ stepper_two = StepperMotor()
 ultrasonic_pet_detect.setup(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
 ultrasonic_dispenser_one.setup(constant.ULTRASONIC_TRIGGER_DISPENSER_ONE, constant.ULTRASONIC_ECHO_DISPENSER_ONE)
 ultrasonic_dispenser_two.setup(constant.ULTRASONIC_TRIGGER_DISPENSER_TWO, constant.ULTRASONIC_ECHO_DISPENSER_TWO)
-stepper_one.setup(constant.STEPPER_CHANNEL_ONE)
-stepper_two.setup(constant.STEPPER_CHANNEL_TWO)
+stepper_one.setup(constant.STEPPER_ONE_DIR, constant.STEPPER_ONE_STEP)
+stepper_two.setup(constant.STEPPER_TWO_DIR, constant.STEPPER_TWO_STEP)
 
 client = Client(os.environ['TWILIO_ACCOUNT_SID'], os.environ['TWILIO_AUTH_TOKEN'])
 
@@ -49,7 +49,7 @@ def dispenser_one(pet_one, dispenses_per_day, amount_dispensed):
             for value in mask_one:
                 if value == True:
                     print('Dispenser 1 pet match confirm')
-                    stepper_one.dispense(constant.STEPPER_CHANNEL_ONE, amount_dispensed)
+                    stepper_one.dispense(constant.STEPPER_ONE_STEP, amount_dispensed)
                     pet_one_fed_status = True
                     dispensed_notif('1', phone_number)
                     # Testing for "pet dispenser", if it is greater than constant REFILL_DISTANCE_THRESHOLD from top of dispenser
@@ -72,7 +72,7 @@ def dispenser_two(pet_two, dispenses_per_day, amount_dispensed):
             for value in mask_two:
                 if value == True:
                     print('Dispenser 2 pet match confirm')
-                    stepper_two.dispense(constant.STEPPER_CHANNEL_TWO, amount_dispensed)
+                    stepper_two.dispense(constant.STEPPER_TWO_STEP, amount_dispensed)
                     pet_two_fed_status = True
                     dispensed_notif('2', phone_number)
                     # Testing for "pet dispenser", if it is greater than constant REFILL_DISTANCE_THRESHOLD from top of dispenser
