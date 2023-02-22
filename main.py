@@ -35,7 +35,7 @@ global_pet = []
 pet_one_fed_status = False
 pet_two_fed_status = False
 
-def dispenser_one(pet_one, dispenses_per_day, amount_dispensed):
+def dispenser_one(pet_one, dispenses_per_day, amount_dispensed, increments):
     global global_pet, pet_one_fed_status
     while True:
         pet_one_fed_status = False
@@ -49,7 +49,11 @@ def dispenser_one(pet_one, dispenses_per_day, amount_dispensed):
             for value in mask_one:
                 if value == True:
                     print('Dispenser 1 pet match confirm')
-                    stepper_one.dispense(constant.STEPPER_ONE_STEP, amount_dispensed)
+                    i = 0
+                    while i < increments:
+                        stepper_one.dispense(constant.STEPPER_ONE_STEP, amount_dispensed/increments)
+                        time.sleep(5)
+                        i += 1
                     pet_one_fed_status = True
                     dispensed_notif('1', phone_number)
                     # Testing for "pet dispenser", if it is greater than constant REFILL_DISTANCE_THRESHOLD from top of dispenser
@@ -60,7 +64,7 @@ def dispenser_one(pet_one, dispenses_per_day, amount_dispensed):
         
         time.sleep(.5)
 
-def dispenser_two(pet_two, dispenses_per_day, amount_dispensed):
+def dispenser_two(pet_two, dispenses_per_day, amount_dispensed, increments):
     global global_pet, pet_two_fed_status
     while True:
         pet_two_fed_status = False
@@ -72,7 +76,11 @@ def dispenser_two(pet_two, dispenses_per_day, amount_dispensed):
             for value in mask_two:
                 if value == True:
                     print('Dispenser 2 pet match confirm')
-                    stepper_two.dispense(constant.STEPPER_TWO_STEP, amount_dispensed)
+                    i = 0
+                    while i < increments:
+                        stepper_two.dispense(constant.STEPPER_TWO_STEP, amount_dispensed/increments)
+                        time.sleep(5)
+                        i += 1
                     pet_two_fed_status = True
                     dispensed_notif('2', phone_number)
                     # Testing for "pet dispenser", if it is greater than constant REFILL_DISTANCE_THRESHOLD from top of dispenser
@@ -125,6 +133,7 @@ if __name__ == '__main__':
 #         pet_one_amount_dispensed = float(input('Enter how much food to dispense for this pet: '))
         pet_one_dispenses_per_day = 1
         pet_one_amount_dispensed = 5
+        pet_one_increments = 1
 
         # Assigns second pet type to dispenser 2
         print('Place your second pet in front of the camera and press enter once you have done so.')
@@ -134,10 +143,11 @@ if __name__ == '__main__':
 #         pet_two_amount_dispensed = float(input('Enter how much food to dispense for this pet: '))
         pet_two_dispenses_per_day = 1
         pet_two_amount_dispensed = 5
+        pet_two_increments = 1
 
         motion = threading.Thread(target=motion_detected, args=(dist_before_motion, ))
-        d1 = threading.Thread(target=dispenser_one, args=(pet_one, pet_one_dispenses_per_day, pet_one_amount_dispensed, ))
-        d2 = threading.Thread(target=dispenser_two, args=(pet_two, pet_two_dispenses_per_day, pet_two_amount_dispensed, ))
+        d1 = threading.Thread(target=dispenser_one, args=(pet_one, pet_one_dispenses_per_day, pet_one_amount_dispensed, pet_one_increments, ))
+        d2 = threading.Thread(target=dispenser_two, args=(pet_two, pet_two_dispenses_per_day, pet_two_amount_dispensed, pet_two_increments, ))
 
         motion.daemon = True
         d1.daemon = True
