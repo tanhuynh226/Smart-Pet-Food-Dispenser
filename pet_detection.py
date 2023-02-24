@@ -32,6 +32,13 @@ def collect_frames():
             start_time = time.time()
             img_counter += 1
 
+def parse_dog_breed(dog_breed):
+    dog_breed = dog_breed.split('-', 1)
+    dog_breed = dog_breed[1]
+    dog_breed = dog_breed.replace('_', ' ')
+    dog_breed = dog_breed.title()
+    return dog_breed
+
 def detect_pet():
     img_counter = 0
     pet = []
@@ -71,7 +78,7 @@ def detect_dog_breed(photo):
     labels = response['CustomLabels']
     if labels:
         for label in labels:
-            name = label['Name']
+            name = parse_dog_breed(label['Name'])
             pet.append(name)
         return pet
     else:

@@ -150,14 +150,11 @@ def sql_listener(cur):
         # Fetch dispenser 1 settings from database
         sql = "SELECT dispenses_per_day, amount_dispensed, increments, time_between_increments FROM Dispenser1;"
         cur.execute(sql)
-        pet_one_dispenses_per_day = cur.fetchone()[0]
-        print(pet_one_dispenses_per_day)
-        pet_one_amount_dispensed = cur.fetchone()[1]
-        print(pet_one_amount_dispensed)
-        pet_one_increments = cur.fetchone()[2]
-        print(pet_one_increments)
-        pet_one_time_between_increments = cur.fetchone()[3]
-        print(pet_one_time_between_increments)
+        dispenser_one = cur.fetchone()
+        pet_one_dispenses_per_day = dispenser_one[0]
+        pet_one_amount_dispensed = dispenser_one[1]
+        pet_one_increments = dispenser_one[2]
+        pet_one_time_between_increments = dispenser_one[3]
 
         # Assigns second pet type to dispenser 2
         sql = "SELECT detect_pet FROM Dispenser2;"
@@ -172,10 +169,12 @@ def sql_listener(cur):
 
         # Fetch dispenser 2 settings from database
         sql = "SELECT dispenses_per_day, amount_dispensed, increments, time_between_increments FROM Dispenser2;"
-        pet_two_dispenses_per_day = cur.fetchone()[0]
-        pet_two_amount_dispensed = cur.fetchone()[1]
-        pet_two_increments = cur.fetchone()[2]
-        pet_two_time_between_increments = cur.fetchone()[3]
+        cur.execute(sql)
+        dispenser_two = cur.fetchone()
+        pet_two_dispenses_per_day = dispenser_two[0]
+        pet_two_amount_dispensed = dispenser_two[1]
+        pet_two_increments = dispenser_two[2]
+        pet_two_time_between_increments = dispenser_two[3]
 
 if __name__ == '__main__':
     try: 
