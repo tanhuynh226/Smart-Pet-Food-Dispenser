@@ -136,9 +136,6 @@ def sql_listener(cur):
             print(dist_before_motion)
             print('Distance to floor saved.')
 
-        # Delay so that "enter" key has time to reset
-        time.sleep(0.1)
-
         # Assigns first pet type to dispenser 1
         sql = "SELECT detect_pet FROM Dispenser1;"
         cur.execute(sql)
@@ -190,7 +187,9 @@ if __name__ == '__main__':
 
         # Create a thread to listen for changes in the database
         mysql = threading.Thread(target=sql_listener, args=(cur, ))
+        # Create a thread to detect motion
         motion = threading.Thread(target=motion_detected, args=(dist_before_motion, ))
+        # Create a thread for each dispenser
         d1 = threading.Thread(target=dispenser_one, args=(pet_one, pet_one_dispenses_per_day, pet_one_amount_dispensed, pet_one_increments, pet_one_time_between_increments, ))
         d2 = threading.Thread(target=dispenser_two, args=(pet_two, pet_two_dispenses_per_day, pet_two_amount_dispensed, pet_two_increments, pet_two_time_between_increments, ))
 
