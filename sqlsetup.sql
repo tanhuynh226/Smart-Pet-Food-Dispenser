@@ -11,7 +11,7 @@ CREATE TABLE Dispenser1 (
     dispenses_per_day int,
     amount_dispensed float,
     increments int,
-    time_between_increments int
+    time_between_increments float
 );
 
 CREATE TABLE Dispenser2 (
@@ -20,7 +20,7 @@ CREATE TABLE Dispenser2 (
     dispenses_per_day int,
     amount_dispensed float,
     increments int,
-    time_between_increments int
+    time_between_increments float
 );
 
 INSERT INTO Gen (phone_number, calibrate_distance) VALUES 

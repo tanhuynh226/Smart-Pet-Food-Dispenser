@@ -85,11 +85,9 @@ def detect_dog_breed(photo):
         return None
 
 def store_pet():
-    while True:
-        if keyboard.is_pressed('enter'):
-            collect_frames()
-            pet = detect_pet()
-            return pet
+    collect_frames()
+    pet = detect_pet()
+    return pet
 
 def release_camera():
     img_counter = 0
@@ -100,10 +98,8 @@ def release_camera():
     capture.release()
 
 def get_distance_before_motion():
-    while True:
-        if keyboard.is_pressed('enter'):
-            dist = ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
-            return dist
+    dist = ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
+    return dist
 
 if __name__ == '__main__':
 #     print('Place your first pet in front of the camera and press enter once you have done so.')
