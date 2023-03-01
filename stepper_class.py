@@ -9,7 +9,7 @@ class StepperMotor:
     def setup(self, dir_pin, step_pin):
         GPIO.setup(dir_pin, GPIO.OUT)
         GPIO.setup(step_pin, GPIO.OUT)
-        GPIO.output(dir_pin, 1) # clockwise
+        GPIO.output(dir_pin, 0) # clockwise
 
     def dispense(self, step_pin, seconds):
         start = time.time()
@@ -18,7 +18,7 @@ class StepperMotor:
             try:
                 GPIO.output(step_pin, GPIO.HIGH)
                 time.sleep(0.01)
-                GPIO.output(step_pin, GPIO.LOW)
+                GPIO.output(step_pin, GPIO.LOW);
                 time.sleep(0.01)
             except KeyboardInterrupt as e:
                 print(e)

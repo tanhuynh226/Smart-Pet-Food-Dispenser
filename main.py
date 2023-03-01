@@ -101,8 +101,8 @@ if __name__ == '__main__':
         # Stores owner's phone number
         while True:
             try:
-#                 phone_number = input('Enter your phone number with country code: ')
-                phone_number = str(14086149226)
+                phone_number = input('Enter your phone number with country code: ')
+                # phone_number = str(14086149226)
                 phone_number = '+' + phone_number
                 lookup = client.lookups.v1.phone_numbers(phone_number).fetch()
                 print('Phone number saved.')
