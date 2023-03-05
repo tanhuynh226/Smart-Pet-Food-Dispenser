@@ -181,7 +181,8 @@ if __name__ == '__main__':
         db = pymysql.connect(host=os.environ['AWS_RDS_ENDPOINT'],
                              user=os.environ['AWS_RDS_USERNAME'],
                              passwd=os.environ['AWS_RDS_PASSWORD'],
-                             db='dispenser')
+                             db='dispenser',
+                             autocommit=True)
         cur = db.cursor()
 
         # Create a thread to listen for changes in the database
