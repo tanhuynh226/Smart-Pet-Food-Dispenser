@@ -291,6 +291,5 @@ if __name__ == '__main__':
 
     except KeyboardInterrupt:
         print('Exiting program...')
-        db.close()
         release_camera()
         GPIO.cleanup()
