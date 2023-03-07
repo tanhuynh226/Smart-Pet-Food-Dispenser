@@ -280,11 +280,11 @@ if __name__ == '__main__':
         d2.daemon = True
 
         application.start()
+        application.join()
+
         motion.start()
         d1.start()
         d2.start()
-        
-        application.join()
         motion.join()
         d1.join()
         d2.join()
