@@ -2,13 +2,13 @@ USE dispenser;
 
 CREATE TABLE Gen (
     phone_number bigint,
-    calibrate_distance bool,
+    calibrate_distance int,
     row_num int,
     primary key(row_num)
 );
 
 CREATE TABLE Dispenser1 (
-	detect_pet bool,
+	detect_pet int,
     pet_breed varchar(255),
     dispenses_per_day int,
     amount_dispensed float,
@@ -19,7 +19,7 @@ CREATE TABLE Dispenser1 (
 );
 
 CREATE TABLE Dispenser2 (
-	detect_pet bool,
+	detect_pet int,
     pet_breed varchar(255),
     dispenses_per_day int,
     amount_dispensed float,

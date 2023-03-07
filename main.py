@@ -131,7 +131,7 @@ def sql_listener(cur):
         cur.execute(sql)
         if cur.fetchone()[0]:
             dist_before_motion = get_distance_before_motion()
-            sql = "UPDATE Gen SET calibrate_distance = false WHERE calibrate_distance = true;"
+            sql = "UPDATE Gen SET calibrate_distance = 0 WHERE calibrate_distance = 1;"
             cur.execute(sql)
             print(dist_before_motion)
             print('Distance to floor saved.')
@@ -141,7 +141,7 @@ def sql_listener(cur):
         cur.execute(sql)
         if cur.fetchone()[0]:
             pet_one = store_pet()
-            sql = "UPDATE Dispenser1 SET detect_pet = false WHERE detect_pet = true;"
+            sql = "UPDATE Dispenser1 SET detect_pet = 0 WHERE detect_pet = 1;"
             cur.execute(sql)
             sql = "UPDATE Dispenser1 SET pet_breed = '" + pet_one + "';"
             cur.execute(sql)
@@ -161,7 +161,7 @@ def sql_listener(cur):
         cur.execute(sql)
         if cur.fetchone()[0]:
             pet_two = store_pet()
-            sql = "UPDATE Dispenser2 SET detect_pet = false WHERE detect_pet = true;"
+            sql = "UPDATE Dispenser2 SET detect_pet = 0 WHERE detect_pet = 1;"
             cur.execute(sql)
             sql = "UPDATE Dispenser2 SET pet_breed = '" + pet_two + "';"
             cur.execute(sql)
