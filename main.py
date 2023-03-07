@@ -6,6 +6,7 @@ import threading
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 import pymysql
+import PySimpleGUI as sg
 from notifications import *
 from pet_detection import *
 import RPi.GPIO as GPIO
@@ -108,102 +109,182 @@ def motion_detected(dist_before_motion):
             print('Sleeping after motion detection...')
             time.sleep(5)
 
-def sql_listener(cur):
+def get_title_str(layout):
+    return layout[0][0].DisplayText
+
+def get_last_layout_num(layout_order):
+    return len(layout_order) - 1
+
+def app():
     global phone_number, pet_one_dispenses_per_day, pet_one_amount_dispensed, pet_one_increments, pet_one_time_between_increments, pet_two_dispenses_per_day, pet_two_amount_dispensed, pet_two_increments, pet_two_time_between_increments
+
+    phone_page = [[sg.Text('Enter your phone number (include country number):', font = ('Arial Bold', 12))],
+                [sg.Input('', key = 'phone_number', enable_events = True, expand_x=True, justification='left')],
+                [sg.Button('Next', key = 'phone_edit')], 
+                [sg.Button('Exit'), sg.Button('Home')]]
+
+    calibration_page = [[sg.Text('Motion Detection Calibration', font = ('Arial Bold', 12))], 
+            [sg.Text('Please do not place anything in front of the device. Click the "Ready" button below after ensuring so.', justification = 'center')],
+            [sg.Button('Ready', key = 'calibration')],
+            [sg.Button('Back'), sg.Button('Next')], 
+            [sg.Button('Exit'), sg.Button('Home')]]
+
+    pet_id1 = [[sg.Text('Dispenser 1 Pet Identification', font = ('Arial Bold', 12))], 
+            [sg.Text('Please place your first pet in front of the camera. Click the "Ready" button below after ensuring so.', justification = 'center')],
+            [sg.Button('Ready', key = 'pet_id1')],
+            [sg.Button('Back'), sg.Button('Next')],
+            [sg.Button('Exit'), sg.Button('Home')]]
+
+    pet_q1 = [[sg.Text('Input 1st Pet Info', font = ('Arial Bold', 12))],
+            [sg.Text('How many times per day would you like your pet to be fed?')],
+            [sg.Input('', key = 'pet_one_dispenses_per_day', expand_x=True, justification='left')],
+            [sg.Text('How much should each meal be (cups)?')],
+            [sg.Input('', key = 'pet_one_amount_dispensed', expand_x=True, justification='left')],
+            [sg.Text('How many increments should the food be dispensed?')],
+            [sg.Input('', key = 'pet_one_increments', expand_x=True, justification='left')],
+            [sg.Text('How many seconds in between each increment (seconds)?')],
+            [sg.Input('', key = 'pet_one_time_between_increments', expand_x=True, justification='left')],
+            [sg.Button('Back'), sg.Button('Next', key = 'pet1_info')], 
+            [sg.Button('Exit'), sg.Button('Home')]]
+
+    pet_id2 = [[sg.Text('Dispenser 2 Pet Identification', font = ('Arial Bold', 12))], 
+            [sg.Text('Please place your second pet in front of the camera. Click the "Next" button below after ensuring so.', justification = 'center')],
+            [sg.Button('Ready', key = 'pet_id2')],
+            [sg.Button('Back'), sg.Button('Next')], 
+            [sg.Button('Exit'), sg.Button('Home')]]
+
+    pet_q2 = [[sg.Text('Input 2nd Pet Info', font = ('Arial Bold', 12))],
+            [sg.Text('How many times per day would you like your pet to be fed?')],
+            [sg.Input('', key = 'pet_two_dispenses_per_day', expand_x=True, justification='left')],
+            [sg.Text('How much should each meal be (cups)?')],
+            [sg.Input('', key = 'pet_two_amount_dispensed', expand_x=True, justification='left')],
+            [sg.Text('How many increments should the food be dispensed?')],
+            [sg.Input('', key = 'pet_two_increments', expand_x=True, justification='left')],
+            [sg.Text('How many seconds in between each increment (seconds)?')],
+            [sg.Input('', key = 'pet_two_time_between_increments', expand_x=True, justification='left')],
+            [sg.Button('Back'), sg.Button('Next', key = 'pet2_info')], 
+            [sg.Button('Exit'), sg.Button('Home')]]
+
+    layout_order = [phone_page, calibration_page, pet_id1, pet_q1, pet_id2, pet_q2] # The page order that the initial setup takes
+
+    home_button_order = ['Edit Phone Number', 'Recalibrate Motion Sensor', 'Recalibrate Dispenser 1 Pet ID', 'Edit Dispenser 1 Attributes', 'Recalibrate Dispenser 2 Pet ID', 'Edit Dispenser 2 Attributes']
+    home_dispenser_label_1 = [[sg.Text('Dispenser 1 Pet')]] + [[sg.Text(pet_one)]]
+    home_dispenser_label_2 = [[sg.Text('Dispenser 2 Pet')]] + [[sg.Text(pet_two)]]
+    home_page = [[sg.Text('Home Page', font = ('Arial Bold', 12))]] + [[sg.Column(home_dispenser_label_1), sg.Column(home_dispenser_label_2)]] + [[sg.Button(str(button_name))] for button_name in home_button_order] + [[sg.Button('Exit')]]
+
+    layout_order.append(home_page)
+
+
+    layout = [[sg.Column(layout, key=str(idx), visible=(idx==0)) for idx, layout in enumerate(layout_order)]]
+
+    window = sg.Window('Smart Pet Food Dispenser', layout)
+
+    layout_num = 0 # The first layout in [layout_order] has key 0 and is visible
+
     while True:
-         # Stores owner's phone number
-        while True:
-            try:
-                sql = "SELECT phone_number FROM Gen;"
-                cur.execute(sql)
-                phone_number = cur.fetchone()[0]
-                phone_number = '+' + str(phone_number)
-                lookup = client.lookups.v1.phone_numbers(phone_number).fetch()
-                print('Phone number saved as' + phone_number)
-                break
-            except TwilioRestException:
-                print('Invalid phone number. Please try again.')
+        event, values = window.read()
+        #print(values)
+        
+        if 'Exit' in event or event is None:
+            break
+        elif event == 'phone_number':
+            if values['phone_number'] and values['phone_number'][-1] not in ('0123456789'):
+                try:
+                    phone_number = values['phone_number']
+                    phone_number = '+' + str(phone_number)
+                    lookup = client.lookups.v1.phone_numbers(phone_number).fetch()
+                    print('Phone number saved as' + phone_number)
+                    break
+                except TwilioRestException:
+                    sg.popup('Invalid phone number. Please try again.')
+                    window['phone_number'].update(values['phone_number'][:-1])
 
-        print('Beginning initial calibration...')
+        elif event == 'phone_edit':
+            window[f'{layout_num}'].update(visible=False)
+            layout_num += 1
+            window[f'{layout_num }'].update(visible=True)
+            print("Phone added")
 
-        # Stores distance without pet in front of the dispenser
-        sql = "SELECT calibrate_distance FROM Gen;"
-        cur.execute(sql)
-        if cur.fetchone()[0]:
+    ###the READY buttons don't need to go to the next page, they just need to send data to the backend
+        elif event == 'calibration':
             dist_before_motion = get_distance_before_motion()
-            sql = "UPDATE Gen SET calibrate_distance = 0 WHERE calibrate_distance = 1;"
-            cur.execute(sql)
             print(dist_before_motion)
             print('Distance to floor saved.')
 
-        # Assigns first pet type to dispenser 1
-        sql = "SELECT detect_pet FROM Dispenser1;"
-        cur.execute(sql)
-        if cur.fetchone()[0]:
+        elif event == 'pet_id1':
             pet_one = store_pet()
-            sql = "UPDATE Dispenser1 SET detect_pet = 0 WHERE detect_pet = 1;"
-            cur.execute(sql)
-            sql = "UPDATE Dispenser1 SET pet_breed = '" + pet_one + "';"
-            cur.execute(sql)
             print('Pet one saved as ', pet_one)
 
-        # Fetch dispenser 1 settings from database
-        sql = "SELECT dispenses_per_day, amount_dispensed, increments, time_between_increments FROM Dispenser1;"
-        cur.execute(sql)
-        dispenser_one = cur.fetchone()
-        pet_one_dispenses_per_day = dispenser_one[0]
-        pet_one_amount_dispensed = dispenser_one[1]
-        pet_one_increments = dispenser_one[2]
-        pet_one_time_between_increments = dispenser_one[3]
-
-        # Assigns second pet type to dispenser 2
-        sql = "SELECT detect_pet FROM Dispenser2;"
-        cur.execute(sql)
-        if cur.fetchone()[0]:
+        elif event == 'pet_id2':
             pet_two = store_pet()
-            sql = "UPDATE Dispenser2 SET detect_pet = 0 WHERE detect_pet = 1;"
-            cur.execute(sql)
-            sql = "UPDATE Dispenser2 SET pet_breed = '" + pet_two + "';"
-            cur.execute(sql)
             print('Pet two saved as ', pet_two)
 
-        # Fetch dispenser 2 settings from database
-        sql = "SELECT dispenses_per_day, amount_dispensed, increments, time_between_increments FROM Dispenser2;"
-        cur.execute(sql)
-        dispenser_two = cur.fetchone()
-        pet_two_dispenses_per_day = dispenser_two[0]
-        pet_two_amount_dispensed = dispenser_two[1]
-        pet_two_increments = dispenser_two[2]
-        pet_two_time_between_increments = dispenser_two[3]
+    ###whenever the user pressed 'Next', it is considered a submit button and should update the user inputs into the backend
+        elif event == 'pet1_info':
+            pet_one_dispenses_per_day = values['pet_one_dispenses_per_day']
+            pet_one_amount_dispensed = values['pet_one_amount_dispensed']
+            pet_one_increments = values['pet_one_increments']
+            pet_one_time_between_increments = values['pet_one_time_between_increments']
+
+            window[f'{layout_num}'].update(visible=False)
+            layout_num += 1
+            window[f'{layout_num }'].update(visible=True)
+            print("EDITED PET 1 INFO")
+
+        elif event == 'pet2_info':
+            pet_two_dispenses_per_day = values['pet_two_dispenses_per_day']
+            pet_two_amount_dispensed = values['pet_two_amount_dispensed']
+            pet_two_increments = values['pet_two_increments']
+            pet_two_time_between_increments = values['pet_two_time_between_increments']
+
+            window[f'{layout_num}'].update(visible=False)
+            layout_num += 1
+            window[f'{layout_num }'].update(visible=True)
+            print("EDITED PET 2 INFO")
+
+        elif "Next" in event:
+            window[f'{layout_num}'].update(visible=False)
+            layout_num += 1
+            window[f'{layout_num }'].update(visible=True)
+        elif "Back" in event:
+            window[f'{layout_num}'].update(visible=False)
+            layout_num -= 1
+            window[f'{layout_num }'].update(visible=True)
+        elif "Home" in event:
+            window[f'{layout_num}'].update(visible=False)
+            layout_num = get_last_layout_num(layout_order)
+            window[f'{layout_num }'].update(visible=True)
+        elif layout_num == get_last_layout_num(layout_order):
+            # For the home page, find the page with the title corresponding with the button text
+            for idx, button_name in enumerate(home_button_order):
+                if button_name in event:
+                    window[f'{layout_num}'].update(visible=False)
+                    layout_num = idx
+                    window[f'{layout_num }'].update(visible=True)
+
+    window.close()
 
 if __name__ == '__main__':
-    try: 
-        db = pymysql.connect(host=os.environ['AWS_RDS_ENDPOINT'],
-                             user=os.environ['AWS_RDS_USERNAME'],
-                             passwd=os.environ['AWS_RDS_PASSWORD'],
-                             db='dispenser',
-                             autocommit=True)
-        cur = db.cursor()
-
-        # Create a thread to listen for changes in the database
-        mysql = threading.Thread(target=sql_listener, args=(cur, ))
+    try:
+        # Create a thread to open the app
+        application = threading.Thread(target=app)
         # Create a thread to detect motion
         motion = threading.Thread(target=motion_detected, args=(dist_before_motion, ))
         # Create a thread for each dispenser
         d1 = threading.Thread(target=dispenser_one, args=(pet_one, pet_one_dispenses_per_day, pet_one_amount_dispensed, pet_one_increments, pet_one_time_between_increments, ))
         d2 = threading.Thread(target=dispenser_two, args=(pet_two, pet_two_dispenses_per_day, pet_two_amount_dispensed, pet_two_increments, pet_two_time_between_increments, ))
 
-        mysql.daemon = True
+        application.daemon = True
         motion.daemon = True
         d1.daemon = True
         d2.daemon = True
 
-        mysql.start()
+        application.start()
         motion.start()
         d1.start()
         d2.start()
         
-        mysql.join()
+        application.join()
         motion.join()
         d1.join()
         d2.join()
