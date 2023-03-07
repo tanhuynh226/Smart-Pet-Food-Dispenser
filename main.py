@@ -116,7 +116,7 @@ def get_last_layout_num(layout_order):
     return len(layout_order) - 1
 
 def app():
-    global phone_number, pet_one_dispenses_per_day, pet_one_amount_dispensed, pet_one_increments, pet_one_time_between_increments, pet_two_dispenses_per_day, pet_two_amount_dispensed, pet_two_increments, pet_two_time_between_increments
+    global phone_number, pet_one, pet_one_dispenses_per_day, pet_one_amount_dispensed, pet_one_increments, pet_one_time_between_increments, pet_two, pet_two_dispenses_per_day, pet_two_amount_dispensed, pet_two_increments, pet_two_time_between_increments
 
     phone_page = [[sg.Text('Enter your phone number (include country number):', font = ('Arial Bold', 12))],
                 [sg.Input('', key = 'phone_number', enable_events = True, expand_x=True, justification='left')],
