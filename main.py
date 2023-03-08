@@ -168,8 +168,8 @@ def app():
     layout_order = [phone_page, calibration_page, pet_id1, pet_q1, pet_id2, pet_q2] # The page order that the initial setup takes
 
     home_button_order = ['Edit Phone Number', 'Recalibrate Motion Sensor', 'Recalibrate Dispenser 1 Pet ID', 'Edit Dispenser 1 Attributes', 'Recalibrate Dispenser 2 Pet ID', 'Edit Dispenser 2 Attributes']
-    home_dispenser_label_1 = [[sg.Text('Dispenser 1 Pet')]] + [[sg.Text(pet_one)]]
-    home_dispenser_label_2 = [[sg.Text('Dispenser 2 Pet')]] + [[sg.Text(pet_two)]]
+    home_dispenser_label_1 = [[sg.Text('Dispenser 1 Pet')]] + [[sg.Text('', key = 'pet_one')]]
+    home_dispenser_label_2 = [[sg.Text('Dispenser 2 Pet')]] + [[sg.Text('', key = 'pet_two')]]
     home_page = [[sg.Text('Home Page', font = ('Arial Bold', 12))]] + [[sg.Column(home_dispenser_label_1), sg.Column(home_dispenser_label_2)]] + [[sg.Button(str(button_name))] for button_name in home_button_order] + [[sg.Button('Exit')]]
 
     layout_order.append(home_page)
@@ -205,7 +205,7 @@ def app():
             window[f'{layout_num }'].update(visible=True)
             print("Phone added")
 
-    ###the READY buttons don't need to go to the next page, they just need to send data to the backend
+        #the READY buttons don't need to go to the next page, they just need to send data to the backend
         elif event == 'calibration':
             dist_before_motion = get_distance_before_motion()
             print(dist_before_motion)
@@ -219,7 +219,7 @@ def app():
             pet_two = store_pet()
             print('Pet two saved as ', pet_two)
 
-    ###whenever the user pressed 'Next', it is considered a submit button and should update the user inputs into the backend
+        #whenever the user pressed 'Next', it is considered a submit button and should update the user inputs into the backend
         elif event == 'pet1_info':
             pet_one_dispenses_per_day = values['pet_one_dispenses_per_day']
             pet_one_amount_dispensed = values['pet_one_amount_dispensed']
@@ -254,6 +254,8 @@ def app():
             window[f'{layout_num}'].update(visible=False)
             layout_num = get_last_layout_num(layout_order)
             window[f'{layout_num }'].update(visible=True)
+            window['pet_one'].update(pet_one)
+            window['pet_two'].update(pet_two)
         elif layout_num == get_last_layout_num(layout_order):
             # For the home page, find the page with the title corresponding with the button text
             for idx, button_name in enumerate(home_button_order):
