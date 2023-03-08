@@ -50,8 +50,8 @@ pet_two_increments = int()
 pet_two_time_between_increments = int()
 
 
-def dispenser_one(pet_one, dispenses_per_day, amount_dispensed, increments, time_between_increments):
-    global global_pet, pet_one_fed_status
+def dispenser_one():
+    global global_pet, pet_one_fed_status, pet_one, pet_one_dispenses_per_day, pet_one_amount_dispensed, pet_one_increments, pet_one_time_between_increments
     while True:
         pet_one_fed_status = False
         mask_one = np.in1d(global_pet, pet_one)
@@ -59,9 +59,9 @@ def dispenser_one(pet_one, dispenses_per_day, amount_dispensed, increments, time
             if value == True:
                 print('Dispenser 1 pet match confirm')
                 i = 0
-                while i < increments:
-                    stepper_one.dispense(constant.STEPPER_ONE_STEP, amount_dispensed/increments)
-                    time.sleep(time_between_increments)
+                while i < pet_one_increments:
+                    stepper_one.dispense(constant.STEPPER_ONE_STEP, pet_one_amount_dispensed/pet_one_increments)
+                    time.sleep(pet_one_time_between_increments)
                     i += 1
                 pet_one_fed_status = True
                 dispensed_notif('1', phone_number)
@@ -69,13 +69,13 @@ def dispenser_one(pet_one, dispenses_per_day, amount_dispensed, increments, time
                 if ultrasonic_dispenser_one.distance(constant.ULTRASONIC_TRIGGER_DISPENSER_ONE, constant.ULTRASONIC_ECHO_DISPENSER_ONE) > constant.REFILL_DISTANCE_THRESHOLD:
                     dispenser_refill_notif('1', phone_number)
                 global_pet = []
-                time.sleep(86400 / dispenses_per_day)
+                time.sleep(86400 / pet_one_dispenses_per_day)
                 break
         
         time.sleep(.5)
 
-def dispenser_two(pet_two, dispenses_per_day, amount_dispensed, increments, time_between_increments):
-    global global_pet, pet_two_fed_status
+def dispenser_two():
+    global global_pet, pet_two_fed_status, pet_two, pet_two_dispenses_per_day, pet_two_amount_dispensed, pet_two_increments, pet_two_time_between_increments
     while True:
         pet_two_fed_status = False
         mask_two = np.in1d(global_pet, pet_two)
@@ -83,9 +83,9 @@ def dispenser_two(pet_two, dispenses_per_day, amount_dispensed, increments, time
             if value == True:
                 print('Dispenser 2 pet match confirm')
                 i = 0
-                while i < increments:
-                    stepper_two.dispense(constant.STEPPER_TWO_STEP, amount_dispensed/increments)
-                    time.sleep(time_between_increments)
+                while i < pet_two_increments:
+                    stepper_two.dispense(constant.STEPPER_TWO_STEP, pet_two_amount_dispensed/pet_two_increments)
+                    time.sleep(pet_two_time_between_increments)
                     i += 1
                 pet_two_fed_status = True
                 dispensed_notif('2', phone_number)
@@ -93,13 +93,13 @@ def dispenser_two(pet_two, dispenses_per_day, amount_dispensed, increments, time
                 if ultrasonic_dispenser_two.distance(constant.ULTRASONIC_TRIGGER_DISPENSER_TWO, constant.ULTRASONIC_ECHO_DISPENSER_TWO) > constant.REFILL_DISTANCE_THRESHOLD:
                     dispenser_refill_notif('2', phone_number)
                 global_pet = []
-                time.sleep(86400 / dispenses_per_day)
+                time.sleep(86400 / pet_two_dispenses_per_day)
                 break
         
         time.sleep(.5)
 
-def motion_detected(dist_before_motion):
-    global global_pet, pet_one_fed_status, pet_two_fed_status
+def motion_detected():
+    global global_pet, pet_one_fed_status, pet_two_fed_status, dist_before_motion
     while True:
         print('Checking if motion is detected')
         dist_after_motion = ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
@@ -116,7 +116,7 @@ def get_last_layout_num(layout_order):
     return len(layout_order) - 1
 
 def app():
-    global phone_number, pet_one, pet_one_dispenses_per_day, pet_one_amount_dispensed, pet_one_increments, pet_one_time_between_increments, pet_two, pet_two_dispenses_per_day, pet_two_amount_dispensed, pet_two_increments, pet_two_time_between_increments
+    global phone_number, dist_before_motion, pet_one, pet_one_dispenses_per_day, pet_one_amount_dispensed, pet_one_increments, pet_one_time_between_increments, pet_two, pet_two_dispenses_per_day, pet_two_amount_dispensed, pet_two_increments, pet_two_time_between_increments
 
     phone_page = [[sg.Text('Enter your phone number (include country number):', font = ('Arial Bold', 12))],
                 [sg.Input('', key = 'phone_number', enable_events = True, expand_x=True, justification='left')],
@@ -271,10 +271,10 @@ if __name__ == '__main__':
         # Create a thread to open the app
         application = threading.Thread(target=app)
         # Create a thread to detect motion
-        motion = threading.Thread(target=motion_detected, args=(dist_before_motion, ))
+        motion = threading.Thread(target=motion_detected)
         # Create a thread for each dispenser
-        d1 = threading.Thread(target=dispenser_one, args=(pet_one, pet_one_dispenses_per_day, pet_one_amount_dispensed, pet_one_increments, pet_one_time_between_increments, ))
-        d2 = threading.Thread(target=dispenser_two, args=(pet_two, pet_two_dispenses_per_day, pet_two_amount_dispensed, pet_two_increments, pet_two_time_between_increments, ))
+        d1 = threading.Thread(target=dispenser_one)
+        d2 = threading.Thread(target=dispenser_two)
 
         application.daemon = True
         motion.daemon = True
@@ -282,11 +282,11 @@ if __name__ == '__main__':
         d2.daemon = True
 
         application.start()
-        application.join()
-
         motion.start()
         d1.start()
         d2.start()
+
+        application.join()
         motion.join()
         d1.join()
         d2.join()
