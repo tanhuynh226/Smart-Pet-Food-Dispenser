@@ -33,6 +33,7 @@ stepper_two.setup(constant.STEPPER_TWO_DIR, constant.STEPPER_TWO_STEP)
 
 client = Client(os.environ['TWILIO_ACCOUNT_SID'], os.environ['TWILIO_AUTH_TOKEN'])
 
+stop_flag = False
 global_pet = []
 pet_one = []
 pet_two = []
@@ -99,7 +100,7 @@ def dispenser_two():
         time.sleep(.5)
 
 def motion_detected():
-    global global_pet, pet_one_fed_status, pet_two_fed_status, dist_before_motion
+    global stop_flag, global_pet, pet_one_fed_status, pet_two_fed_status, dist_before_motion
     while True:
         print('Checking if motion is detected')
         dist_after_motion = ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
@@ -108,6 +109,8 @@ def motion_detected():
             global_pet = detect_pet()
             print('Sleeping after motion detection...')
             time.sleep(5)
+        if stop_flag == True:
+            break
 
 def get_title_str(layout):
     return layout[0][0].DisplayText
@@ -116,7 +119,7 @@ def get_last_layout_num(layout_order):
     return len(layout_order) - 1
 
 def app():
-    global phone_number, dist_before_motion, pet_one, pet_one_dispenses_per_day, pet_one_amount_dispensed, pet_one_increments, pet_one_time_between_increments, pet_two, pet_two_dispenses_per_day, pet_two_amount_dispensed, pet_two_increments, pet_two_time_between_increments
+    global stop_flag, phone_number, dist_before_motion, pet_one, pet_one_dispenses_per_day, pet_one_amount_dispensed, pet_one_increments, pet_one_time_between_increments, pet_two, pet_two_dispenses_per_day, pet_two_amount_dispensed, pet_two_increments, pet_two_time_between_increments
 
     phone_page = [[sg.Text('Enter your phone number (include country number):', font = ('Arial Bold', 12))],
                 [sg.Input('', key = 'phone_number', enable_events = True, expand_x=True, justification='left')],
@@ -180,6 +183,10 @@ def app():
     window = sg.Window('Smart Pet Food Dispenser', layout)
 
     layout_num = 0 # The first layout in [layout_order] has key 0 and is visible
+    
+    # Create a thread to detect motion
+    motion = threading.Thread(target=motion_detected)
+    motion.daemon = True
 
     while True:
         event, values = window.read()
@@ -189,21 +196,20 @@ def app():
             break
         elif event == 'phone_number':
             if values['phone_number'] and values['phone_number'][-1] not in ('0123456789'):
-                try:
-                    phone_number = values['phone_number']
-                    phone_number = '+' + str(phone_number)
-                    lookup = client.lookups.v1.phone_numbers(phone_number).fetch()
-                    print('Phone number saved as' + phone_number)
-                    break
-                except TwilioRestException:
-                    sg.popup('Invalid phone number. Please try again.')
-                    window['phone_number'].update(values['phone_number'][:-1])
+                sg.popup('Only digits are allowed. Please try again.')
+                window['phone_number'].update(values['phone_number'][:-1])
 
         elif event == 'phone_edit':
-            window[f'{layout_num}'].update(visible=False)
-            layout_num += 1
-            window[f'{layout_num }'].update(visible=True)
-            print("Phone added")
+            try:
+                phone_number = '+' + str(values['phone_number'])
+                lookup = client.lookups.v1.phone_numbers(phone_number).fetch()
+                print('Phone number saved as ' + phone_number)
+                window[f'{layout_num}'].update(visible=False)
+                layout_num += 1
+                window[f'{layout_num }'].update(visible=True)
+                print("Phone added")
+            except TwilioRestException:
+                sg.popup('Invalid phone number. Please try again.')
 
         #the READY buttons don't need to go to the next page, they just need to send data to the backend
         elif event == 'calibration':
@@ -212,19 +218,28 @@ def app():
             print('Distance to floor saved.')
 
         elif event == 'pet_id1':
+            if motion.is_alive():
+                stop_flag = True
+                time.sleep(1)
             pet_one = store_pet()
             print('Pet one saved as ', pet_one)
+            stop_flag = False
+            
 
         elif event == 'pet_id2':
+            if motion.is_alive():
+                stop_flag = True
+                time.sleep(1)
             pet_two = store_pet()
             print('Pet two saved as ', pet_two)
+            stop_flag = False
 
         #whenever the user pressed 'Next', it is considered a submit button and should update the user inputs into the backend
         elif event == 'pet1_info':
-            pet_one_dispenses_per_day = values['pet_one_dispenses_per_day']
-            pet_one_amount_dispensed = values['pet_one_amount_dispensed']
-            pet_one_increments = values['pet_one_increments']
-            pet_one_time_between_increments = values['pet_one_time_between_increments']
+            pet_one_dispenses_per_day = int(values['pet_one_dispenses_per_day'])
+            pet_one_amount_dispensed = int(values['pet_one_amount_dispensed'])
+            pet_one_increments = int(values['pet_one_increments'])
+            pet_one_time_between_increments = int(values['pet_one_time_between_increments'])
 
             window[f'{layout_num}'].update(visible=False)
             layout_num += 1
@@ -232,10 +247,10 @@ def app():
             print("EDITED PET 1 INFO")
 
         elif event == 'pet2_info':
-            pet_two_dispenses_per_day = values['pet_two_dispenses_per_day']
-            pet_two_amount_dispensed = values['pet_two_amount_dispensed']
-            pet_two_increments = values['pet_two_increments']
-            pet_two_time_between_increments = values['pet_two_time_between_increments']
+            pet_two_dispenses_per_day = int(values['pet_two_dispenses_per_day'])
+            pet_two_amount_dispensed = int(values['pet_two_amount_dispensed'])
+            pet_two_increments = int(values['pet_two_increments'])
+            pet_two_time_between_increments = int(values['pet_two_time_between_increments'])
 
             window[f'{layout_num}'].update(visible=False)
             layout_num += 1
@@ -254,15 +269,19 @@ def app():
             window[f'{layout_num}'].update(visible=False)
             layout_num = get_last_layout_num(layout_order)
             window[f'{layout_num }'].update(visible=True)
-            window['pet_one'].update(pet_one)
-            window['pet_two'].update(pet_two)
+            window['pet_one'].update(pet_one[0])
+            window['pet_two'].update(pet_two[0])
         elif layout_num == get_last_layout_num(layout_order):
+            if not motion.is_alive():
+                motion.start() 
             # For the home page, find the page with the title corresponding with the button text
             for idx, button_name in enumerate(home_button_order):
                 if button_name in event:
                     window[f'{layout_num}'].update(visible=False)
                     layout_num = idx
                     window[f'{layout_num }'].update(visible=True)
+                    window['pet_one'].update(pet_one[0])
+                    window['pet_two'].update(pet_two[0])   
 
     window.close()
 
@@ -270,24 +289,19 @@ if __name__ == '__main__':
     try:
         # Create a thread to open the app
         application = threading.Thread(target=app)
-        # Create a thread to detect motion
-        motion = threading.Thread(target=motion_detected)
         # Create a thread for each dispenser
         d1 = threading.Thread(target=dispenser_one)
         d2 = threading.Thread(target=dispenser_two)
 
         application.daemon = True
-        motion.daemon = True
         d1.daemon = True
         d2.daemon = True
 
         application.start()
-        motion.start()
         d1.start()
         d2.start()
 
         application.join()
-        motion.join()
         d1.join()
         d2.join()
 
