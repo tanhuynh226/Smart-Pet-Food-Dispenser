@@ -32,6 +32,13 @@ def collect_frames():
             start_time = time.time()
             img_counter += 1
 
+def parse_dog_breed(dog_breed):
+    dog_breed = dog_breed.split('-', 1)
+    dog_breed = dog_breed[1]
+    dog_breed = dog_breed.replace('_', ' ')
+    dog_breed = dog_breed.title()
+    return dog_breed
+
 def detect_pet():
     img_counter = 0
     pet = []
@@ -71,16 +78,13 @@ def detect_dog_breed(photo):
     labels = response['CustomLabels']
     if labels:
         for label in labels:
-            name = label['Name']
+            name = parse_dog_breed(label['Name'])
             pet.append(name)
         return pet
     else:
         return None
 
 def store_pet():
-#     while True:
-#         if keyboard.is_pressed('enter'):
-    time.sleep(8)
     collect_frames()
     pet = detect_pet()
     return pet
@@ -94,9 +98,6 @@ def release_camera():
     capture.release()
 
 def get_distance_before_motion():
-#     while True:
-#         if keyboard.is_pressed('enter'):
-    time.sleep(5)
     dist = ultrasonic_pet_detect.distance(constant.ULTRASONIC_TRIGGER_PET, constant.ULTRASONIC_ECHO_PET)
     return dist
 
